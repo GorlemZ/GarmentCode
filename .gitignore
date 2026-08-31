@@ -29,5 +29,13 @@ tmp*
 Logs*
 output*
 
-# Nicegui
+# NiceGUI
 .nicegui
+
+# Python development environments and tool caches
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/

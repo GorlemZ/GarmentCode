@@ -1,3 +1,60 @@
 [build-system]
-requires = ['setuptools>=42']
-build-backend = 'setuptools.build_meta'
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pygarment"
+version = "2.0.2"
+description = "A modular programming framework for designing parametric sewing patterns"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "Maria Korosteleva", email = "maria.korosteleva.public@gmail.com" },
+]
+keywords = ["garment-programming", "garment-modeling", "sewing-patterns"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "pyyaml>=6.0",
+  "numpy<2",
+  "scipy",
+  "svgwrite",
+  "svgpathtools",
+  "psutil",
+  "matplotlib",
+  "CairoSVG",
+  "nicegui",
+  "trimesh",
+  "libigl",
+  "pyrender",
+  "cgal",
+]
+
+[project.urls]
+Homepage = "https://igl.ethz.ch/projects/garmentcode/"
+Issues = "https://github.com/maria-korosteleva/GarmentCode/issues"
+Repository = "https://github.com/maria-korosteleva/GarmentCode"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<9",
+  "ruff>=0.12",
+  "uv>=0.8",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pygarment*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]

@@ -1,68 +1,113 @@
 # Installation
 
-## Local paths setup 
+GarmentCode supports Python 3.9 and newer. Python 3.11 is the recommended development version.
 
-Create system.json file in the root of this directory with your machine's file paths using `system.template.json` as a template. 
-`system.json` should include the following: 
-* Path for creating logs for one-off scripts (`'output'`)
-* Path to the folder with (generated) datasets of sewing patterns (`'datasets_path'`)
-* Path to the folder with simulation results on the datasets of sewing patterns (`'datasets_sim'`)
+## Choose the capability you need
 
-* Data generation & Simulation resources  
-    * path to folder with simulation\rendering configurations (`'sim_configs_path'`)
-    * path to folder containing body files for neutral body and other base body models (`'bodies_default_path'`)
-    * path to folder containing datasets of body shape samples (`'body_samples_path'`)
-    
+- **PyGarment core** builds and serializes parametric sewing patterns.
+- **Repository examples and GUI** additionally use the files under `assets/` and should be run from a checkout of this repository.
+- **3D simulation** requires the GarmentCode fork of NVIDIA Warp and is not provided by the standard Python package installation.
+- **Maya + Qualoth** is a legacy integration with separate proprietary prerequisites.
 
-## Installing simulator
+## System Cairo dependency
 
-We use our own version of the [NVIDIA warp](https://github.com/maria-korosteleva/NvidiaWarp-GarmentCode) simulator. It should be installed manually to use our library correctly.
+CairoSVG requires the native Cairo library.
 
-See the instructions in the [NvidiaWarp-GarmentCode](https://github.com/maria-korosteleva/NvidiaWarp-GarmentCode) repo. 
+### macOS
 
-## Using pip
-
-With pip, you can install the core pygarment library and its dependencies to start writing your own garment programs!
-
-```
-pip install pygarment
+```bash
+brew install cairo
+export DYLD_FALLBACK_LIBRARY_PATH="$(brew --prefix cairo)/lib${DYLD_FALLBACK_LIBRARY_PATH:+:$DYLD_FALLBACK_LIBRARY_PATH}"
 ```
 
-## Manual Installation
+Add the `export` line to your shell profile if Python otherwise reports that it cannot find `cairo`, `libcairo-2`, or `libcairo.2.dylib`.
 
-If required, you could install the library and dependecies manually
+### Debian/Ubuntu
 
-### pygarment uses the following dependencies:
-
-These dependencies are installed through [setup.cfg](https://github.com/maria-korosteleva/GarmentCode/blob/main/setup.cfg#L23).
-
-* Python 3.9
-* numpy<2
-* scipy
-* pyyaml >= 6.0
-* [svgwrite](https://pypi.org/project/svgwrite/)
-* psutil
-* matplotlib
-* [svgpathtools](https://github.com/mathandy/svgpathtools)
-* [cairoSVG](https://cairosvg.org/)
-    NOTE: this lib has some quirks on Windows, which we resolve with including needed dlls in `./pygarment/pattern/cairo_dlls` and adding the ditrectory to PATH in runtime
-* [NiceGUI](https://nicegui.io/#installation)
-* [trimesh](https://trimesh.org/)
-* [libigl](https://libigl.github.io/libigl-python-bindings/)
-* [pyrender](https://pyrender.readthedocs.io/en/latest/index.html)
-* [CGAL](https://pypi.org/project/cgal/)
-
-All python dependencies can be installed with `pip install` / `conda install`:
-
-```
-conda create -n garmentcode python=3.9
-conda activate garmentcode
-pip install -e . # installs in editable mode, installs requirements from setup.cfg
-<build and install warp for GarmentCode>
+```bash
+sudo apt-get update
+sudo apt-get install -y libcairo2
 ```
 
-Add the root repository to `PYTHONPATH`.
+### Fedora
 
-=> The code is ready to run
+```bash
+sudo dnf install cairo
+```
 
-> NOTE: check out a full environment setup and running process from our early adopter: https://github.com/maria-korosteleva/GarmentCode/issues/17
+### Windows
+
+Install a native Cairo runtime matching your Python/Windows architecture and make its DLL directory available on `PATH` before importing PyGarment. The universal PyGarment wheel intentionally does not bundle platform-specific Cairo DLLs. See the [CairoSVG documentation](https://cairosvg.org/documentation/) for current Windows prerequisites.
+
+## Install the core package
+
+From PyPI:
+
+```bash
+python -m pip install pygarment
+```
+
+For development from a repository checkout, `uv` is recommended:
+
+```bash
+uv venv --python 3.11
+uv pip install -e ".[dev]"
+```
+
+Alternatively, use the standard library virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+Verify the installation from outside the repository root so the checkout cannot mask a broken installation:
+
+```bash
+cd /tmp  # Windows: change to any directory outside the checkout
+python -c "import pygarment; print(pygarment.__file__)"
+```
+
+The printed path should point to the active environment's `site-packages/pygarment` directory (or to the editable-install mapping when developing locally).
+
+## Configure repository scripts
+
+Copy the system-path template before running GUI, sampling, fitting, or simulation scripts:
+
+```bash
+cp system.template.json system.json
+```
+
+Update these fields for your machine:
+
+- `output`: one-off script output and logs;
+- `datasets_path`: generated sewing-pattern datasets;
+- `datasets_sim`: simulation results;
+- `sim_configs_path`: simulation/render configuration files;
+- `bodies_default_path`: bundled or custom base body models;
+- `body_samples_path`: sampled body-shape datasets.
+
+The default relative paths in `system.template.json` are suitable for the bundled examples, but dataset paths must be supplied before running the data-generation pipeline.
+
+## Run the core example and GUI
+
+Run repository entry points from the repository root because the examples use repository-level `assets/` paths:
+
+```bash
+python test_garmentcode.py
+python gui.py
+```
+
+See [Running GarmentCode](Running_garmentcode.md) for usage details.
+
+## Install the simulator
+
+GarmentCode uses its own version of [NVIDIA Warp](https://github.com/maria-korosteleva/NvidiaWarp-GarmentCode). Build and install that fork manually before using the draping and dataset-simulation commands. A normal `pip install pygarment` does not install or configure this external simulator.
+
+See [Running data generation](Running_data_generation.md) for the pipeline and configuration format.
+
+## Troubleshooting
+
+See [Troubleshooting](Troubleshooting.md) for Cairo loader errors, incorrect package imports, missing `system.json`, and optional simulation prerequisites.
