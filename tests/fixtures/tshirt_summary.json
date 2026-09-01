@@ -1,0 +1,81 @@
+{
+  "name": "t-shirt",
+  "panel_order": [
+    "right_btorso",
+    "right_sleeve_b",
+    "right_sleeve_f",
+    "right_ftorso",
+    "left_btorso",
+    "left_sleeve_b",
+    "left_sleeve_f",
+    "left_ftorso"
+  ],
+  "panels": {
+    "left_btorso": {
+      "vertices": 6,
+      "edges": 6,
+      "bounds": {
+        "min": [0.0, 0.0],
+        "max": [25.029952, 49.918458]
+      }
+    },
+    "left_ftorso": {
+      "vertices": 7,
+      "edges": 7,
+      "bounds": {
+        "min": [0.0, 0.0],
+        "max": [27.386415, 49.963063]
+      }
+    },
+    "left_sleeve_b": {
+      "vertices": 5,
+      "edges": 5,
+      "bounds": {
+        "min": [-22.045337, -21.050709],
+        "max": [0.0, 0.0]
+      }
+    },
+    "left_sleeve_f": {
+      "vertices": 4,
+      "edges": 4,
+      "bounds": {
+        "min": [-22.040128, -21.050709],
+        "max": [0.0, 0.0]
+      }
+    },
+    "right_btorso": {
+      "vertices": 6,
+      "edges": 6,
+      "bounds": {
+        "min": [-25.029952, 0.0],
+        "max": [0.0, 49.918458]
+      }
+    },
+    "right_ftorso": {
+      "vertices": 7,
+      "edges": 7,
+      "bounds": {
+        "min": [-27.386415, 0.0],
+        "max": [0.0, 49.963063]
+      }
+    },
+    "right_sleeve_b": {
+      "vertices": 5,
+      "edges": 5,
+      "bounds": {
+        "min": [0.0, -21.050709],
+        "max": [22.045337, 0.0]
+      }
+    },
+    "right_sleeve_f": {
+      "vertices": 4,
+      "edges": 4,
+      "bounds": {
+        "min": [0.0, -21.050709],
+        "max": [22.040128, 0.0]
+      }
+    }
+  },
+  "stitches": 16,
+  "units_in_meter": 100
+}

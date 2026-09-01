@@ -24,6 +24,19 @@ Official Implementation of [GarmentCode: Programming Parametric Sewing Patterns]
 
 **[Oct 18, 2023]** First release of GarmentCode!
 
+## Quick start
+
+GarmentCode requires Python 3.9 or newer; Python 3.11 is recommended. From a repository checkout:
+
+```bash
+uv venv --python 3.11
+uv pip install -e ".[dev]"
+cp system.template.json system.json
+python test_garmentcode.py
+```
+
+The example programs and GUI use repository-level files under `assets/`, while the installed `pygarment` package provides the reusable pattern-programming library. See [Installation](docs/Installation.md) for native Cairo setup and [Troubleshooting](docs/Troubleshooting.md) for platform-specific errors. The 3D simulation pipeline additionally requires the project-specific NVIDIA Warp fork.
+
 ## Documents
 
 1. [Installation](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Installation.md)
