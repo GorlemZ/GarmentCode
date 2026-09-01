@@ -52,6 +52,15 @@ include = ["pygarment*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "core: tests for the 2D garment and pattern core",
+  "packaging: wheel and source distribution checks",
+  "mesh: mesh generation integration checks",
+  "gui: NiceGUI integration checks",
+  "simulation: NVIDIA Warp simulation integration checks",
+  "maya: Maya/Qualoth legacy integration checks",
+  "slow: tests that are too slow for default local runs",
+]
 
 [tool.ruff]
 target-version = "py39"

@@ -1,0 +1,55 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: core / ${{ matrix.os }} / py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.9"
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: macos-latest
+            python-version: "3.11"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Cairo on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libcairo2
+      - name: Install Cairo on macOS
+        if: runner.os == 'macOS'
+        run: brew install cairo
+      - name: Run core tests
+        run: |
+          cairo_prefix="$(brew --prefix cairo 2>/dev/null || true)"
+          export DYLD_FALLBACK_LIBRARY_PATH="${cairo_prefix}/lib${DYLD_FALLBACK_LIBRARY_PATH:+:$DYLD_FALLBACK_LIBRARY_PATH}"
+          uv run --isolated --no-project --python ${{ matrix.python-version }} \
+            --with 'numpy<2' \
+            --with scipy \
+            --with pyyaml \
+            --with svgwrite \
+            --with svgpathtools \
+            --with matplotlib \
+            --with cairosvg \
+            --with psutil \
+            --with 'pytest>=8,<9' \
+            pytest -m core -q

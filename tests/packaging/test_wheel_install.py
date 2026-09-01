@@ -4,19 +4,28 @@ import venv
 import zipfile
 from pathlib import Path
 
+import pytest
+
+
+pytestmark = pytest.mark.packaging
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_wheel_installs_pygarment_namespace(tmp_path):
-    wheel_dir = tmp_path / "wheel"
-    wheel_dir.mkdir()
-    subprocess.run(
-        ["uv", "build", "--wheel", "--out-dir", str(wheel_dir)],
-        cwd=PROJECT_ROOT,
-        check=True,
-    )
-    wheel = next(wheel_dir.glob("*.whl"))
+    wheel_under_test = os.environ.get("WHEEL_UNDER_TEST")
+    if wheel_under_test:
+        wheel = Path(wheel_under_test)
+    else:
+        wheel_dir = tmp_path / "wheel"
+        wheel_dir.mkdir()
+        subprocess.run(
+            ["uv", "build", "--wheel", "--out-dir", str(wheel_dir)],
+            cwd=PROJECT_ROOT,
+            check=True,
+        )
+        wheel = next(wheel_dir.glob("*.whl"))
 
     with zipfile.ZipFile(wheel) as archive:
         members = set(archive.namelist())
@@ -24,7 +33,8 @@ def test_wheel_installs_pygarment_namespace(tmp_path):
         assert "pygarment/data_config.py" in members
         assert "pygarment/garmentcode/component.py" in members
         assert "pygarment/pattern/core.py" in members
-        assert not any(member.lower().endswith(".dll") for member in members)
+        native_suffixes = (".dll", ".dylib", ".pyd", ".so")
+        assert not any(member.lower().endswith(native_suffixes) for member in members)
         assert "garmentcode/__init__.py" not in members
         assert "pattern/core.py" not in members
 
