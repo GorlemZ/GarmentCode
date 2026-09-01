@@ -2,6 +2,10 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pytest
+
+
+pytestmark = pytest.mark.core
 
 
 FIXTURE = Path(__file__).parent / "fixtures/tshirt_summary.json"
