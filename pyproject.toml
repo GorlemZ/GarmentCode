@@ -25,13 +25,6 @@ dependencies = [
   "svgwrite",
   "svgpathtools",
   "psutil",
-  "matplotlib",
-  "CairoSVG",
-  "nicegui",
-  "trimesh",
-  "libigl",
-  "pyrender",
-  "cgal",
 ]
 
 [project.urls]
@@ -40,9 +33,29 @@ Issues = "https://github.com/maria-korosteleva/GarmentCode/issues"
 Repository = "https://github.com/maria-korosteleva/GarmentCode"
 
 [project.optional-dependencies]
+visualization = [
+  "CairoSVG",
+  "matplotlib",
+]
+gui = [
+  "nicegui",
+  "CairoSVG",
+  "matplotlib",
+]
+mesh = [
+  "trimesh",
+  "libigl",
+  "pyrender",
+  "cgal",
+  "Pillow",
+  "matplotlib",
+]
+simulation = []
+maya = []
 dev = [
   "pytest>=8,<9",
   "ruff>=0.12",
+  "twine>=6,<7",
   "uv>=0.8",
 ]
 
