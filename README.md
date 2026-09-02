@@ -30,21 +30,31 @@ GarmentCode requires Python 3.9 or newer; Python 3.11 is recommended. From a rep
 
 ```bash
 uv venv --python 3.11
-uv pip install -e ".[dev]"
+uv pip install -e ".[dev,visualization]"
 cp system.template.json system.json
 python test_garmentcode.py
 ```
 
-The example programs and GUI use repository-level files under `assets/`, while the installed `pygarment` package provides the reusable pattern-programming library. See [Installation](docs/Installation.md) for native Cairo setup and [Troubleshooting](docs/Troubleshooting.md) for platform-specific errors. The 3D simulation pipeline additionally requires the project-specific NVIDIA Warp fork.
+The default `pygarment` install is limited to the reusable 2D pattern-programming library. Install extras only for heavier capabilities:
+
+```bash
+python -m pip install pygarment                  # core DSL and JSON/SVG pattern support
+python -m pip install "pygarment[visualization]"  # PNG/PDF export and debug plots
+python -m pip install "pygarment[gui]"            # NiceGUI configurator UI
+python -m pip install "pygarment[mesh]"           # mesh generation/render deps
+```
+
+The example programs and GUI use repository-level files under `assets/`, while the installed `pygarment` package provides the reusable pattern-programming library. See [Installation](docs/Installation.md), [Dependency groups](docs/Dependency-groups.md), and [Troubleshooting](docs/Troubleshooting.md) for platform-specific dependencies. The 3D simulation pipeline additionally requires the project-specific NVIDIA Warp fork.
 
 ## Documents
 
 1. [Installation](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Installation.md)
-2. [Running Configurator](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Running_garmentcode.md) 
-3. [Running Data Generation (warp)](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Running_data_generation.md) 
-3. [Body measurements](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Body%20Measurements%20GarmentCode.pdf)
-4. [Dataset documentation](https://www.research-collection.ethz.ch/handle/20.500.11850/673889)
-3. [Running Old Maya+Qualoth tools](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Running_Maya_Qualoth.md) 
+2. [Dependency groups](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Dependency-groups.md)
+3. [Running Configurator](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Running_garmentcode.md)
+4. [Running Data Generation (warp)](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Running_data_generation.md)
+5. [Body measurements](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Body%20Measurements%20GarmentCode.pdf)
+6. [Dataset documentation](https://www.research-collection.ethz.ch/handle/20.500.11850/673889)
+7. [Running Old Maya+Qualoth tools](https://github.com/maria-korosteleva/GarmentCode/blob/main/docs/Running_Maya_Qualoth.md)
 
 ## Navigation
 

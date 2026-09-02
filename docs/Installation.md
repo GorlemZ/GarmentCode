@@ -9,9 +9,23 @@ GarmentCode supports Python 3.9 and newer. Python 3.11 is the recommended develo
 - **3D simulation** requires the GarmentCode fork of NVIDIA Warp and is not provided by the standard Python package installation.
 - **Maya + Qualoth** is a legacy integration with separate proprietary prerequisites.
 
+## Dependency groups
+
+The default install is intentionally limited to the reusable 2D pattern-programming library. Install extras only when you need heavier capabilities:
+
+```bash
+python -m pip install pygarment                 # core DSL, JSON, SVG path generation
+python -m pip install "pygarment[visualization]" # PNG/PDF export and 3D debug plots
+python -m pip install "pygarment[gui]"           # NiceGUI web configurator UI
+python -m pip install "pygarment[mesh]"          # mesh generation/render package deps
+python -m pip install "pygarment[simulation]"    # marker extra; install Warp separately
+```
+
+See [Dependency groups](Dependency-groups.md) for the full matrix, including Maya and the external Warp fork.
+
 ## System Cairo dependency
 
-CairoSVG requires the native Cairo library.
+CairoSVG requires the native Cairo library. This is only needed for the `visualization` extra or features that export PNG/PDF files; `import pygarment` and core JSON/SVG path generation do not require CairoSVG or native Cairo.
 
 ### macOS
 
@@ -93,7 +107,14 @@ The default relative paths in `system.template.json` are suitable for the bundle
 
 ## Run the core example and GUI
 
-Run repository entry points from the repository root because the examples use repository-level `assets/` paths:
+Run repository entry points from the repository root because the examples use repository-level `assets/` paths. Install `visualization` for `test_garmentcode.py`; install `gui` for the configurator:
+
+```bash
+uv pip install -e ".[dev,visualization]"  # script example
+uv pip install -e ".[dev,gui]"            # configurator UI
+```
+
+Then run:
 
 ```bash
 python test_garmentcode.py

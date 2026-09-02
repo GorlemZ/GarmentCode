@@ -4,7 +4,6 @@ import yaml
 import shutil 
 import string
 import random
-import trimesh
 from copy import deepcopy
 from typing import Optional
 
@@ -12,10 +11,8 @@ from typing import Optional
 from assets.garment_programs.meta_garment import MetaGarment
 from assets.bodies.body_params import BodyParameters
 import pygarment as pyg
-from pygarment.meshgen.boxmeshgen import BoxMesh
-from pygarment.meshgen.simulation import run_sim
+from pygarment._optional import require_optional
 import pygarment.data_config as data_config
-from pygarment.meshgen.sim_config import PathCofig
 
 verbose = False
 
@@ -198,6 +195,23 @@ class GUIPattern:
     # 3D
     def drape_3d(self):
         """Run the draping of the current frame"""
+
+        trimesh = require_optional('trimesh', 'mesh', feature='GUI 3D draping')
+        require_optional('igl', 'mesh', feature='GUI 3D draping', distribution_name='libigl')
+        require_optional('CGAL', 'mesh', feature='GUI 3D draping', distribution_name='cgal')
+        require_optional(
+            'warp',
+            'simulation',
+            feature='GUI 3D draping',
+            install_hint=(
+                "Install the Warp-enabled environment from "
+                "`https://github.com/maria-korosteleva/NvidiaWarp-GarmentCode`."
+            ),
+        )
+
+        from pygarment.meshgen.boxmeshgen import BoxMesh
+        from pygarment.meshgen.simulation import run_sim
+        from pygarment.meshgen.sim_config import PathCofig
 
         # Config setup 
         props = data_config.Properties('./assets/Sim_props/gui_sim_props.yaml')   # TODOLOW Parameter?

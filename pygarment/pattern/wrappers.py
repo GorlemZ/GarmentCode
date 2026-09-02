@@ -14,14 +14,12 @@ if 'Windows' in os.environ.get('OS',''):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     os.environ['path'] += f';{os.path.abspath(dir_path + "/cairo_dlls/")}'
 
-import cairosvg
 import svgpathtools as svgpath
 import svgwrite as sw
 
-import matplotlib.pyplot as plt
-
 # my
 from pygarment import data_config
+from pygarment._optional import require_optional
 from . import core
 from .utils import *
 
@@ -313,6 +311,12 @@ class VisPattern(core.ParametrizedPattern):
         # NOTE: Assuming the pattern uses cm
         # 3 px == 1 cm
         # DPI = 96 (default) px/inch == 96/2.54 px/cm
+        cairosvg = require_optional(
+            'cairosvg',
+            'visualization',
+            feature='PNG export',
+            distribution_name='CairoSVG',
+        )
         cairosvg.svg2png(
             url=svg_filename, write_to=png_filename, dpi=2.54*self.px_per_unit)
         
@@ -320,6 +324,12 @@ class VisPattern(core.ParametrizedPattern):
         """Save the patterns with 3D positioning using matplotlib visualization"""
 
         # NOTE: this routine is mostly needed for debugging
+        plt = require_optional(
+            'matplotlib.pyplot',
+            'visualization',
+            feature='3D pattern image export',
+            distribution_name='matplotlib',
+        )
 
         fig = plt.figure(figsize=(30 / 2.54, 30 / 2.54))
         ax = fig.add_subplot(projection='3d')
@@ -368,6 +378,12 @@ class VisPattern(core.ParametrizedPattern):
         # NOTE: Assuming the pattern uses cm
         # 3 px == 1 cm
         # DPI = 96 (default) px/inch == 96/2.54 px/cm
+        cairosvg = require_optional(
+            'cairosvg',
+            'visualization',
+            feature='PDF export',
+            distribution_name='CairoSVG',
+        )
         cairosvg.svg2pdf(
             url=svg_filename, write_to=pdf_filename, dpi=2.54*self.px_per_unit)
 
