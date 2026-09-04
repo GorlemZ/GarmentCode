@@ -5,9 +5,10 @@
 import copy
 import errno
 import json
-import numpy as np
 import os
 import random
+
+import numpy as np
 import svgpathtools as svgpath
 
 # My
@@ -42,7 +43,7 @@ panel_spec_template = {
     'edges': []
 }
 
-class EmptyPatternError(BaseException):
+class EmptyPatternError(Exception):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
 
@@ -633,7 +634,7 @@ class ParametrizedPattern(BasicPattern):
                     panel_name, rotated_edge_ids)
 
     def _influence_after_edge_loop_update(self, infl_list, panel_name, new_edge_ids):
-        """
+        r"""
             Update the list of parameter\constraint influence with the new edge ids of given panel.
             
             flipped -- indicates if in the new edges start & end vertices have been swapped

@@ -25,8 +25,11 @@ def _sample_on_sphere(rad):
     return OpenMaya.MFloatVector(uni_array[0], uni_array[1], uni_array[2])
 
 
-def _camera_surface(target, obstacles=[], vertical_scaling_factor=1.5, ground_scaling_factor=1.2):
+def _camera_surface(target, obstacles=None, vertical_scaling_factor=1.5, ground_scaling_factor=1.2):
     """Generate a (3D scanning) camera surface around provided scene"""
+
+    if obstacles is None:
+        obstacles = []
 
     # basically, draw a bounding box around the target
     bbox = np.array(cmds.exactWorldBoundingBox(obstacles + [target]))  # [xmin, ymin, zmin, xmax, ymax, zmax]
@@ -49,7 +52,7 @@ def _camera_surface(target, obstacles=[], vertical_scaling_factor=1.5, ground_sc
     return cube[0], np.max(dims)
 
 
-def remove_invisible(target, obstacles=[], num_rays=30, visibile_rays=4):
+def remove_invisible(target, obstacles=None, num_rays=30, visibile_rays=4):
     """Update target 3D mesh: remove faces that are not visible from camera_surface
         * due to self-occlusion or occlusion by an obstacle
         * Camera surface is generated aroung the target as a small "room" with empty floor and ceiling
@@ -60,6 +63,9 @@ def remove_invisible(target, obstacles=[], num_rays=30, visibile_rays=4):
         * visibile_rays -- number of rays to hit camera surface without obstacles to consider the face to be visible
         BUT at least one ray is always required to consider face as visible!
     """
+    if obstacles is None:
+        obstacles = []
+
     # Follows the idea of self_intersect_3D() checks used in simulation pipeline
     print('Performing scanning imitation on {} with obstacles {}'.format(target, obstacles))
     

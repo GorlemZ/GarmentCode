@@ -5,7 +5,6 @@ from pygarment.garmentcode.component import Component
 from pygarment.garmentcode.edge_factory import EdgeSeqFactory
 from pygarment.garmentcode.panel import Panel
 
-
 pytestmark = pytest.mark.core
 
 
@@ -44,3 +43,21 @@ def test_empty_component_has_infinite_bbox_sentinel():
 
     assert np.isposinf(bbox_min).all()
     assert np.isneginf(bbox_max).all()
+
+
+def test_component_mirror_uses_non_mutable_default_axis():
+    class MirrorSpy:
+        def __init__(self):
+            self.calls = []
+
+        def mirror(self, axis):
+            self.calls.append(list(axis))
+
+    spy = MirrorSpy()
+    component = Component("shirt")
+    component.subs = [spy]
+
+    component.mirror()
+
+    assert Component.mirror.__defaults__ == (None,)
+    assert spy.calls == [[0, 1]]

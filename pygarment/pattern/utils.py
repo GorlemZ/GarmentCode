@@ -2,6 +2,7 @@
 
 import numpy as np
 
+
 def list_to_c(num):
     """Convert 2D list or list of 2D lists into complex number/list of complex numbers"""
     if isinstance(num[0], list) or isinstance(num[0], np.ndarray):

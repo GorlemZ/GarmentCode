@@ -31,15 +31,15 @@ from pygarment.meshgen.sim_config import SimConfig, PathCofig
 
 wp.init()
 
-class SimulationError(BaseException):
+class SimulationError(Exception):
     """To be rised when panel stitching cannot be executed correctly"""
     pass
 
-class FrameTimeOutError(BaseException):
+class FrameTimeOutError(Exception):
     """To be rised when frame takes too long to simulate"""
     pass
 
-class SimTimeOutError(BaseException):
+class SimTimeOutError(Exception):
     """To be rised when simulation takes too long"""
     pass
 
@@ -52,14 +52,14 @@ def optimize_garment_storage(paths: PathCofig):
         boxmesh = trimesh.load(paths.g_box_mesh)
         boxmesh.export(paths.g_box_mesh_compressed)
         paths.g_box_mesh.unlink()
-    except BaseException:
+    except Exception:
         pass
 
     try:
         simmesh = trimesh.load(paths.g_sim)
         simmesh.export(paths.g_sim_compressed)
         paths.g_sim.unlink()
-    except BaseException:
+    except Exception:
         pass
 
     # Remove large texture file and mtl -- not so necessary
@@ -190,16 +190,8 @@ def run_sim(
     except SimulationError:
         print("Simulation failed")
         props.add_fail('sim', 'gt_edges_creation', cloth_name)
-    except BaseException as e:
+    except Exception as e:
         print(f'Sim::{cloth_name}::crashed with {e}')
-
-        if isinstance(e, KeyboardInterrupt):
-            # Allow to stop simulation loops by keyboard interrupt
-            # It's not a real crash, so don't write down the failure
-            sec = round(time.time() - start_time, 3)
-            min = int(sec / 60)
-            print(f"Simulation pipeline took: {min} m {sec - min * 60} s")
-            raise e
 
         traceback.print_exc()
         props.add_fail('sim', 'crashes', cloth_name)

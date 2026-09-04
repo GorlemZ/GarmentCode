@@ -1,11 +1,9 @@
-from typing import TypeVar, Generic, Sequence, Callable
+from typing import Callable, Generic, Sequence, TypeVar
 
 import numpy as np
+import svgpathtools as svgpath
 from numpy.linalg import norm
 from scipy.spatial.transform import Rotation
-import svgpathtools as svgpath
-
-
 
 # proper inserstions by key with bicest module in python <3.10
 # https://stackoverflow.com/questions/27672494/how-to-use-bisect-insort-left-with-a-key
@@ -80,7 +78,7 @@ def lin_interpolation(val1, val2, factor):
     with factor == 1, output is val2
     """
     if factor < 0 or factor > 1:
-        raise ValueError(f'lin_interpolation::ERROR::Expected a factor \in [0, 1], got {factor}')
+        raise ValueError(rf'lin_interpolation::ERROR::Expected a factor \in [0, 1], got {factor}')
 
     return (1 - factor) * val1 + factor * val2
 

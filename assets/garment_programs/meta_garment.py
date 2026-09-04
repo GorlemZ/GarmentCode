@@ -8,12 +8,12 @@ from assets.garment_programs.skirt_levels import *
 from assets.garment_programs.circle_skirt import *
 from assets.garment_programs.sleeves import *
 
-class TotalLengthError(BaseException):
+class TotalLengthError(Exception):
     """Error indicating that the total length of a garment goes beyond 
     the floor length for a given person"""
     pass
 
-class IncorrectElementConfiguration(BaseException):
+class IncorrectElementConfiguration(Exception):
     """Error indicating that given pattern is an empty garment"""
     pass
 

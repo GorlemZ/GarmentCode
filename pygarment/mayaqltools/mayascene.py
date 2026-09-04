@@ -30,7 +30,7 @@ reload(wrappers)
 reload(qw)
 reload(utils)
 
-class PatternLoadingError(BaseException):
+class PatternLoadingError(Exception):
     """To be rised when a pattern cannot be loaded correctly to 3D"""
     pass
 
@@ -65,12 +65,17 @@ class MayaGarment(wrappers.VisPattern):
             self.clean(True)
 
     # ------ Basic operations ------
-    def load(self, obstacles=[], shader_group=None, config={}, parent_group=None):
+    def load(self, obstacles=None, shader_group=None, config=None, parent_group=None):
         """
             Loads current pattern to Maya as simulatable garment.
             If already loaded, cleans previous geometry & reloads
             config should contain info on fabric matereials & body_friction (collider friction) if provided
         """
+        if obstacles is None:
+            obstacles = []
+        if config is None:
+            config = {}
+
         if self.is_self_intersecting():
             # supplied pattern with self-intersecting panels -- it's likely to crash Maya
             raise PatternLoadingError('{}::{}::Provided pattern has self-intersecting panels. Nothing is loaded'.format(
@@ -282,10 +287,13 @@ class MayaGarment(wrappers.VisPattern):
         cmds.refresh()
 
     # ------ Simulation ------
-    def add_colliders(self, obstacles=[]):
+    def add_colliders(self, obstacles=None):
         """
             Adds given Maya objects as colliders of the garment
         """
+        if obstacles is None:
+            obstacles = []
+
         if not self.loaded_to_maya:
             raise RuntimeError(
                 'MayaGarmentError::Pattern is not yet loaded. Cannot load colliders')
@@ -423,12 +431,15 @@ class MayaGarment(wrappers.VisPattern):
         else:
             return False, non_static_len
 
-    def intersect_colliders_3D(self, obstacles=[]):
+    def intersect_colliders_3D(self, obstacles=None):
         """Checks wheter garment intersects given obstacles or its colliders if obstacles are not given
             Returns True if intersections found
 
             Having intersections may disrupt simulation result although it seems to recover from some of those
         """
+        if obstacles is None:
+            obstacles = []
+
         if not self.loaded_to_maya:
             raise RuntimeError('Garment is not yet loaded: cannot check for intersections')
 
@@ -568,8 +579,11 @@ class MayaGarment(wrappers.VisPattern):
 
         return panel_group
 
-    def _setSimProps(self, config={}):
+    def _setSimProps(self, config=None):
         """Pass material properties for cloth & colliders to Qualoth"""
+        if config is None:
+            config = {}
+
         if not self.loaded_to_maya:
             raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
 
@@ -1432,9 +1446,12 @@ class Scene(object):
             old_translation[2] + body_low_center[2] - floor_low_center[2],
             type='double3')  # apply to whole group s.t. lights positions were adjusted too
 
-    def _add_simple_camera(self, rotation=[-23.2, 16, 0]):
+    def _add_simple_camera(self, rotation=None):
         """Puts camera in the scene
         NOTE Assumes body is facing +z direction"""
+
+        if rotation is None:
+            rotation = [-23.2, 16, 0]
 
         camera = cmds.camera(aspectRatio=self.config['resolution'][0] / self.config['resolution'][1])[0]
         cmds.setAttr(camera + '.rotate', rotation[0], rotation[1], rotation[2], type='double3')

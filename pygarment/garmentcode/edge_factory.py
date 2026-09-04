@@ -1,16 +1,17 @@
 import numpy as np
-from numpy.linalg import norm
 import svgpathtools as svgpath
+from numpy.linalg import norm
 from scipy.optimize import minimize
 
-from pygarment.garmentcode.edge import EdgeSequence, Edge, CurveEdge
-from pygarment.garmentcode.edge import CircleEdge
-from pygarment.garmentcode.utils import vector_angle
-from pygarment.garmentcode.utils import bbox_paths
-from pygarment.garmentcode.utils import close_enough
-from pygarment.garmentcode.utils import c_to_list
-from pygarment.garmentcode.utils import list_to_c
-from pygarment.pattern.utils import rel_to_abs_2d, abs_to_rel_2d
+from pygarment.garmentcode.edge import CircleEdge, CurveEdge, Edge, EdgeSequence
+from pygarment.garmentcode.utils import (
+    bbox_paths,
+    c_to_list,
+    close_enough,
+    list_to_c,
+    vector_angle,
+)
+from pygarment.pattern.utils import abs_to_rel_2d, rel_to_abs_2d
 
 
 class EdgeFactory:

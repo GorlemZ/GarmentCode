@@ -74,7 +74,7 @@ def batch_sim(data_path, output_path, dataset_props,
                 samples_name=dataset_props['body_samples'],
                 default_body=run_default_body
             )
-        except BaseException as e: 
+        except Exception as e:
             # Not all files available
             print("***Pattern loading failed (paths)***")
             dataset_props.add_fail('sim', 'crashes', pattern_name)
@@ -328,7 +328,7 @@ def template_simulation(paths: PathCofig, props, caching=False):
         print(e)
         failure_case = 'stitching_error'
         props.add_fail('sim', failure_case, garment.name)
-    except BaseException as e:   # Catch the rest of exceptions
+    except Exception as e:   # Catch the rest of exceptions
         print("***Pattern loading failed due to unknown error***")
         print(e)
         failure_case = 'crashes'

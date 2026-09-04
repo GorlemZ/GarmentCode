@@ -1,9 +1,10 @@
 """
     Simple Rotation Conversion routines (Maya-Python2.7-Compatible!!)
 """
-import numpy as np
 import math as m
 import sys
+
+import numpy as np
 
 # TODO: Maya python 2.7 is long gone.
 # Can be substituted with scipy rotation transformation routines for Maya2022+

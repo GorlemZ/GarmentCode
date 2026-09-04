@@ -1,14 +1,15 @@
-import numpy as np
-from copy import copy
 from argparse import Namespace
+from copy import copy
+
+import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from pygarment.pattern.core import BasicPattern
 from pygarment.garmentcode.base import BaseComponent
-from pygarment.garmentcode.edge import Edge, EdgeSequence, CircleEdge
-from pygarment.garmentcode.utils import close_enough, vector_align_3D
-from pygarment.garmentcode.operators import cut_into_edge
+from pygarment.garmentcode.edge import CircleEdge, EdgeSequence
 from pygarment.garmentcode.interface import Interface
+from pygarment.garmentcode.operators import cut_into_edge
+from pygarment.garmentcode.utils import close_enough, vector_align_3D
+from pygarment.pattern.core import BasicPattern
 
 
 class Panel(BaseComponent):

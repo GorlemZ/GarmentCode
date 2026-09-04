@@ -73,12 +73,15 @@ class Component(BaseComponent):
             f'Component::ERROR::rotate_to is not supported on component level.'
             'Use relative <rotate_by()> method instead')
 
-    def mirror(self, axis=[0, 1]):
+    def mirror(self, axis=None):
         """Swap this component with its mirror image by recursively mirroring
         subcomponents
         
             Axis specifies 2D axis to swap around: Y axis by default
         """
+        if axis is None:
+            axis = [0, 1]
+
         for subs in self._get_subcomponents():
             subs.mirror(axis)
         return self

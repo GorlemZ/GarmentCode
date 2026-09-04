@@ -6,7 +6,6 @@ import pytest
 
 from pygarment.pattern.core import BasicPattern
 
-
 pytestmark = pytest.mark.core
 
 
