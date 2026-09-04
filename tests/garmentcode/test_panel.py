@@ -1,10 +1,8 @@
-import numpy as np
 import pytest
 from scipy.spatial.transform import Rotation as R
 
 from pygarment.garmentcode.edge_factory import EdgeSeqFactory
 from pygarment.garmentcode.panel import Panel
-
 
 pytestmark = pytest.mark.core
 

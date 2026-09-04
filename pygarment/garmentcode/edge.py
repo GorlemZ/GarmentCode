@@ -1,14 +1,11 @@
-from copy import deepcopy, copy
+from copy import copy, deepcopy
 
 import numpy as np
-from numpy.linalg import norm
 import svgpathtools as svgpath  # https://github.com/mathandy/svgpathtools
+from numpy.linalg import norm
 
-from pygarment.garmentcode.utils import R2D
-from pygarment.garmentcode.utils import close_enough
-from pygarment.garmentcode.utils import c_to_list
-from pygarment.garmentcode.utils import list_to_c
-from pygarment.pattern.utils import rel_to_abs_2d, abs_to_rel_2d
+from pygarment.garmentcode.utils import R2D, c_to_list, close_enough, list_to_c
+from pygarment.pattern.utils import abs_to_rel_2d, rel_to_abs_2d
 
 ILENGTH_S_TOL = 1e-10   # NOTE: tolerance value for evaluating curve parameter (t) from acr length
 
@@ -332,7 +329,9 @@ class CircleEdge(Edge):
         # So parent implementation is ok
         # TODOLOW Implementation is very similar to CurveEdge param-based subdivision
 
-        from pygarment.garmentcode.edge_factory import EdgeFactory  # TODOLOW: ami - better solution?
+        from pygarment.garmentcode.edge_factory import (
+            EdgeFactory,  # TODOLOW: ami - better solution?
+        )
         frac = [abs(f) for f in fractions]
         if not close_enough(fsum := sum(frac), 1, 1e-4):
             raise RuntimeError(f'Edge Subdivision::ERROR::fraction is incorrect. The sum {fsum} is not 1')
@@ -518,7 +517,9 @@ class CurveEdge(Edge):
             splitting its curve parametrization or overall length according to 
             fractions while preserving the overall shape
         """
-        from pygarment.garmentcode.edge_factory import EdgeFactory  # TODOLOW: ami - better solution?
+        from pygarment.garmentcode.edge_factory import (
+            EdgeFactory,  # TODOLOW: ami - better solution?
+        )
         curve = self.as_curve()
 
         # Sub-curves

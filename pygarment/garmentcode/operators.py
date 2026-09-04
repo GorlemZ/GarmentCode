@@ -1,17 +1,22 @@
 """Shortcuts for common operations on panels and components"""
-from copy import deepcopy, copy
+from copy import copy, deepcopy
 
 import numpy as np
-from numpy.linalg import norm
-from scipy.spatial.transform import Rotation as R
-from scipy.optimize import minimize
 import svgpathtools as svgpath
+from numpy.linalg import norm
+from scipy.optimize import minimize
+from scipy.spatial.transform import Rotation as R
 
-from pygarment.garmentcode.edge import Edge, CurveEdge, EdgeSequence, ILENGTH_S_TOL
-from pygarment.garmentcode.interface import Interface
-from pygarment.garmentcode.utils import vector_angle, close_enough, c_to_list, c_to_np
-from pygarment.garmentcode.utils import list_to_c
 from pygarment.garmentcode.base import BaseComponent
+from pygarment.garmentcode.edge import ILENGTH_S_TOL, CurveEdge, Edge, EdgeSequence
+from pygarment.garmentcode.interface import Interface
+from pygarment.garmentcode.utils import (
+    c_to_list,
+    c_to_np,
+    close_enough,
+    list_to_c,
+    vector_angle,
+)
 
 
 # ANCHOR ----- Edge Sequences Modifiers ----

@@ -5,7 +5,6 @@ from pygarment.garmentcode.edge_factory import EdgeSeqFactory
 from pygarment.garmentcode.interface import Interface
 from pygarment.garmentcode.panel import Panel
 
-
 pytestmark = pytest.mark.core
 
 

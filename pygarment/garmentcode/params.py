@@ -1,11 +1,12 @@
 """Parameter class wrappers around parameter files allowing definition of computed parameters
 """
-import yaml
-from pathlib import Path
+import random
 from copy import deepcopy
-import random 
+from pathlib import Path
 
-from pygarment.garmentcode.utils import nested_get, nested_set, close_enough
+import yaml
+
+from pygarment.garmentcode.utils import close_enough, nested_get, nested_set
 
 
 class BodyParametrizationBase:
@@ -112,7 +113,7 @@ class DesignSampler:
         # Check Defaults
         try: 
             def_prob = nested_get(random_params, path + ['default_prob'])
-        except KeyError as e:   # Default probability not given  -> Sample uniformly
+        except KeyError:   # Default probability not given  -> Sample uniformly
             def_prob = None
 
         def_value = nested_get(self.params, path + ['v'])

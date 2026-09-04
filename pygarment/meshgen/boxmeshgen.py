@@ -27,23 +27,23 @@ from pygarment.meshgen.render.texture_utils import texture_mesh_islands, save_ob
 # TODOLOW Some stitching errors are not getting detected
 
 # SECTION -- Errors
-class PatternLoadingError(BaseException):
+class PatternLoadingError(Exception):
     """To be raised when a pattern cannot be loaded correctly to 3D"""
     pass
 
-class MultiStitchingError(BaseException):
+class MultiStitchingError(Exception):
     """To be raised when a panel edge is stitched together with more than one other edge"""
     pass
 
-class StitchingError(BaseException):
+class StitchingError(Exception):
     """To be raised when a one cannot find successfull stitching sequence"""
     pass
 
-class DegenerateTrianglesError(BaseException):
+class DegenerateTrianglesError(Exception):
     """To be raised when panel meshing produces degenrate triangles"""
     pass
 
-class NormError(BaseException):
+class NormError(Exception):
     """To be raised when a panel norm is NAN"""
     pass
 # !SECTION
@@ -630,7 +630,7 @@ class BoxMesh(wrappers.VisPattern):
         ret_panel = self.panels[panel_name]
         try:
             edge = ret_panel.edges[edge_id]
-        except BaseException:
+        except Exception:
             print(f'{self.__class__.__name__}::ERROR::{self.name}::Provided pattern'
                   f' fails for stitch id {stitch_id} and {[panel_name,edge_id]}')
             raise PatternLoadingError(
@@ -1492,7 +1492,7 @@ class BoxMesh(wrappers.VisPattern):
         with open(self.paths.g_vert_labels, 'w') as file:
             yaml.dump(self.vertex_labels, file, default_flow_style=False, sort_keys=False)
         
-    def save_box_mesh_obj(self, with_normals=False, in_uv_config={}, mat_name='panels_texture'):
+    def save_box_mesh_obj(self, with_normals=False, in_uv_config=None, mat_name='panels_texture'):
         """
         This function creates an obj file of the generated box mesh from pattern and stores it to save_path.
         Input:
@@ -1504,6 +1504,9 @@ class BoxMesh(wrappers.VisPattern):
             print(f'{self.__class__.__name__}::{self.name}::WARNING::Pattern is not yet loaded. Nothing saved')
             return
         
+        if in_uv_config is None:
+            in_uv_config = {}
+
         uv_config = {  # Defaults
             'seam_width': 0.5,
             'dpi': 600,

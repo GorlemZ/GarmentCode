@@ -1,10 +1,11 @@
 """
     To be used in Python 3.6+ due to dependencies
 """
-from copy import copy
+import os
 import random
 import string
-import os
+from copy import copy
+
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
@@ -18,8 +19,8 @@ import svgpathtools as svgpath
 import svgwrite as sw
 
 # my
-from pygarment import data_config
 from pygarment._optional import require_optional
+
 from . import core
 from .utils import *
 

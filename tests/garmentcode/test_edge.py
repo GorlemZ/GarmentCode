@@ -1,11 +1,13 @@
 import math
 
-import numpy as np
 import pytest
 
 from pygarment.garmentcode.edge import CurveEdge, Edge
-from pygarment.garmentcode.edge_factory import CircleEdgeFactory, EdgeFactory, EdgeSeqFactory
-
+from pygarment.garmentcode.edge_factory import (
+    CircleEdgeFactory,
+    EdgeFactory,
+    EdgeSeqFactory,
+)
 
 pytestmark = pytest.mark.core
 
