@@ -16,6 +16,10 @@ import pygarment.data_config as data_config
 
 verbose = False
 
+# How the pattern svg is rendered for the GUI canvas. margin=0 keeps svg_bbox_size
+# equal to the bbox extent, which gui.pattern_placement relies on.
+SVG_DISPLAY_KWARGS = dict(with_text=False, view_ids=False, flat=False, margin=0)
+
 def _id_generator(size=10, chars=string.ascii_uppercase + string.digits):
         """Generate a random string of a given size, see
         https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits
@@ -158,12 +162,7 @@ class GUIPattern:
         self.clear_previous_svg()
         try:
             self.svg_filename = f'pattern_{time.time()}.svg'
-            dwg = pattern.get_svg(self.tmp_path / self.svg_filename, 
-                                  with_text=False, 
-                                  view_ids=False,
-                                  flat=False,
-                                  margin=0
-            )
+            dwg = pattern.get_svg(self.tmp_path / self.svg_filename, **SVG_DISPLAY_KWARGS)
             dwg.save()
 
             self.svg_bbox_size = pattern.svg_bbox_size

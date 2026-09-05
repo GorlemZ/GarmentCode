@@ -4,7 +4,9 @@
 ## [Unreleased]
 
 ### Fixed
-- **[GUI]** The sewing pattern was rendered below the canvas and clipped with NiceGUI 3.x. The overlay rows are now positioned with inline styles and the placement math moved to `gui/pattern_placement.py` (pure, unit-tested). Side effect: the pattern no longer inherits Quasar's 16px padding, so it is drawn ~2.5% wider and its position no longer depends on the window size.
+- **[GUI]** The sewing pattern was rendered below the canvas and clipped with NiceGUI 3.x. The overlay rows are now positioned with inline styles and the placement math moved to `gui/pattern_placement.py` (pure, unit-tested). Side effect: the pattern no longer inherits Quasar's 16px padding, so relative to the canvas it is drawn slightly wider (~2.5% at 1920x1080, more on smaller windows) and its position no longer depends on the window size.
+- **[GUI]** Pattern placement now derives the silhouette frame (feet, head, axis) from the silhouette svg and uses the real image height, so tall garments are no longer shrunk needlessly, the pattern keeps the same offset from the shoulder line when the shrink kicks in, and shrunk patterns are guaranteed to fit inside the canvas.
+- **[GUI]** Switching the body silhouette off no longer gets undone by the next design parameter change.
 
 ### Changed
 - **[Packaging]** The `gui` extra now requires `nicegui>=2.24,<4`.

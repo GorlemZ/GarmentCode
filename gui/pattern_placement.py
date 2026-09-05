@@ -3,6 +3,18 @@
 All values are fractions of the canvas (the millimeter-paper background image),
 so they are independent of the viewport size. Kept free of NiceGUI imports so
 it can be unit-tested in the core test suite.
+
+Frame conventions
+-----------------
+* The silhouette (``assets/img/ggg_outline_mean_all.svg``) is rendered by a
+  Quasar ``q-img`` with ``object-fit: cover`` into the canvas. Its viewBox is
+  wider than the canvas, so the fit is height-limited: vertical fractions of
+  the viewBox carry over to the canvas unchanged and the sides are cropped.
+* The pattern svg uses a frame where the body axis is x=0 and the feet are at
+  y=0, y growing downwards (so the shoulder line is a negative ``min_y``).
+* When the pattern does not fit, body and pattern are shrunk by the same
+  factor about the canvas center (the body via a CSS ``transform: scale``
+  with ``transform-origin: center``).
 """
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -10,17 +22,48 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class CanvasConfig:
-    """Constants describing how the body silhouette sits on the canvas."""
-    w_rel_body_size: float = 0.5        # Body height as a fraction of the canvas width
-    h_rel_body_size: float = 0.95       # Body height as a fraction of the canvas height
-    cm_to_canvas: float = 1 / 171.99    # Inverse of the mean_all body height (cm) from GGG
-    body_canvas_center: float = 0.273   # Body vertical axis as a fraction of the canvas width
-    # Empirical shifts of the pattern, retuned (from 0.011 / 0.04) after the overlay
-    # stopped inheriting Quasar's 16px padding, so that the t-shirt lands where
-    # NiceGUI 2.x drew it at 1920x1080.
-    w_canvas_pad: float = 0.003
-    h_canvas_pad: float = 0.026
-    scale_margin: float = 1.2           # Extra room when the pattern overflows the canvas
+    """Constants describing the canvas and the silhouette asset drawn on it."""
+    canvas_aspect: float = 1500. / 900.          # Millimeter paper (assets/img/millimiter_paper_1500_900.png)
+    body_height_cm: float = 171.99               # mean_all body height (GGG), the one the silhouette depicts
+
+    # Silhouette asset geometry, from the path bounding boxes of the svg
+    # (viewBox 1920x1080): figure spans y 32.3..1022.6, its vertical axis is x=537.9.
+    silhouette_aspect: float = 1920. / 1080.
+    silhouette_head: float = 32.3 / 1080.
+    silhouette_feet: float = 1022.6 / 1080.
+    silhouette_axis: float = 537.9 / 1920.
+
+    w_rel_body_size: float = 0.5     # Pattern scale: body height (cm) as a fraction of the canvas width
+    shoulder_gap: float = 0.025      # Pattern top floats this far above the shoulder line (aesthetic,
+                                     # reproduces the NiceGUI 2.x rendering at 1920x1080)
+    fit_margin: float = 0.02         # Kept free around the pattern when rescaling to fit
+
+    def __post_init__(self):
+        if self.silhouette_aspect < self.canvas_aspect:
+            raise ValueError('Silhouette placement assumes a height-limited cover fit '
+                             '(silhouette_aspect >= canvas_aspect)')
+
+    # Derived frame quantities (fractions of the canvas)
+    @property
+    def body_axis_x(self) -> float:
+        """Silhouette axis in canvas-width fractions, after the cover-fit crop."""
+        cover = self.silhouette_aspect / self.canvas_aspect
+        return self.silhouette_axis * cover - (cover - 1.) / 2.
+
+    @property
+    def cm_x(self) -> float:
+        """Canvas-width fraction per cm of pattern."""
+        return self.w_rel_body_size / self.body_height_cm
+
+    @property
+    def cm_y(self) -> float:
+        """Canvas-height fraction per cm of pattern (the image keeps its aspect ratio)."""
+        return self.cm_x * self.canvas_aspect
+
+    @property
+    def cm_body(self) -> float:
+        """Canvas-height fraction per cm of the silhouette."""
+        return (self.silhouette_feet - self.silhouette_head) / self.body_height_cm
 
 
 @dataclass(frozen=True)
@@ -29,8 +72,20 @@ class PatternPlacement:
     left: float
     top: float
     width: float
-    body_scale: float = 1.0     # Scale applied to the body silhouette (1.0 = untouched)
-    is_rescaled: bool = False   # True when the overflow branch was taken
+    height: float
+    body_scale: float = 1.0   # Scale applied to body and pattern about the canvas center
+
+    @property
+    def is_rescaled(self) -> bool:
+        return self.body_scale < 1.0
+
+    @property
+    def right(self) -> float:
+        return self.left + self.width
+
+    @property
+    def bottom(self) -> float:
+        return self.top + self.height
 
 
 def compute_pattern_placement(
@@ -39,51 +94,46 @@ def compute_pattern_placement(
         cfg: CanvasConfig = CanvasConfig()) -> PatternPlacement:
     """Align the pattern svg with the body silhouette.
 
-    svg_bbox is [min_x, max_x, min_y, max_y] of the pattern in cm, in a frame
-    where the body stands at x=0 with feet at y=0 (y grows downwards, so the
-    shoulder line is a negative min_y). svg_bbox_size is the svg viewbox size
+    svg_bbox is [min_x, max_x, min_y, max_y] of the pattern in cm (see frame
+    conventions in the module docstring). svg_bbox_size is the svg viewbox size
     in cm, i.e. the bbox extent plus twice the svg margin: the GUI renders with
     margin=0, so the two coincide.
 
-    When the pattern does not fit, both body and pattern are shrunk by the same
-    factor so that the pattern stays inside the canvas.
+    The pattern's body axis lands on the silhouette axis and its top edge sits
+    ``shoulder_gap`` above the silhouette shoulder line. If the result exceeds
+    the canvas minus ``fit_margin`` on any side, body and pattern are scaled
+    about the canvas center by the largest factor that fits all four sides.
     """
     w_shift = abs(svg_bbox[0])   # Body axis location w.r.t. the left edge of the pattern
     top_cm = abs(svg_bbox[2])    # Height of the pattern top above the feet
     p_w, p_h = svg_bbox_size[0], svg_bbox_size[1]
 
-    m_top = (1. - top_cm * cfg.cm_to_canvas) * cfg.h_rel_body_size + (1. - cfg.h_rel_body_size) / 2
-    m_left = cfg.body_canvas_center - w_shift * cfg.cm_to_canvas * cfg.w_rel_body_size
-    m_right = 1 - m_left - p_w * cfg.cm_to_canvas * cfg.w_rel_body_size
-    m_bottom = 1 - m_top - p_h * cfg.cm_to_canvas * cfg.h_rel_body_size
+    # Unscaled placement
+    shoulder_y = cfg.silhouette_feet - top_cm * cfg.cm_body
+    top = shoulder_y - cfg.shoulder_gap
+    left = cfg.body_axis_x - w_shift * cfg.cm_x
+    width = p_w * cfg.cm_x
+    height = p_h * cfg.cm_y
 
-    # Canvas padding adjustment
-    m_top -= cfg.h_canvas_pad
-    m_left -= cfg.w_canvas_pad
-    m_right += cfg.w_canvas_pad   # preserve evaluated width
-    m_bottom -= cfg.h_canvas_pad
+    # Largest scale (about the canvas center) that keeps every edge inside
+    # [fit_margin, 1 - fit_margin]. An edge already on the correct side of the
+    # center never constrains the scale.
+    room = 0.5 - cfg.fit_margin
+    scale = 1.
+    for edge in (left, top):
+        if edge < 0.5:
+            scale = min(scale, room / (0.5 - edge))
+    for edge in (left + width, top + height):
+        if edge > 0.5:
+            scale = min(scale, room / (edge - 0.5))
 
-    if m_top >= 0 and m_bottom >= 0 and m_left >= 0 and m_right >= 0:
-        return PatternPlacement(left=m_left, top=m_top, width=1. - m_right - m_left)
-
-    # Pattern overflows: shrink body and pattern together
-    y_top_scale = abs(min(m_top * cfg.scale_margin, 0.)) + 1.
-    y_bot_scale = 1. + abs(min(m_bottom * cfg.scale_margin, 0.))
-    x_left_scale = abs(min(m_left * cfg.scale_margin, 0.)) + 1.
-    x_right_scale = abs(min(m_right * cfg.scale_margin, 0.)) + 1.
-    scale = min(1. / y_top_scale, 1. / y_bot_scale, 1. / x_left_scale, 1. / x_right_scale)
-
-    body_center = 0.5 - cfg.body_canvas_center
-    m_top = (1. - top_cm * cfg.cm_to_canvas) * cfg.h_rel_body_size * scale \
-        + (1. - cfg.h_rel_body_size * scale) / 2
-    m_left = (0.5 - body_center * scale) - w_shift * cfg.cm_to_canvas * cfg.w_rel_body_size * scale
-    m_right = 1 - m_left - p_w * cfg.cm_to_canvas * cfg.w_rel_body_size * scale
-
-    # Canvas padding adjustment (the top one is not needed here: the body is
-    # scaled around the canvas center, which already moves the shoulder line down)
-    m_left -= cfg.w_canvas_pad * scale
-    m_right += cfg.w_canvas_pad * scale
+    if scale >= 1.:
+        return PatternPlacement(left=left, top=top, width=width, height=height)
 
     return PatternPlacement(
-        left=m_left, top=m_top, width=1. - m_right - m_left,
-        body_scale=scale, is_rescaled=True)
+        left=0.5 + (left - 0.5) * scale,
+        top=0.5 + (top - 0.5) * scale,
+        width=width * scale,
+        height=height * scale,
+        body_scale=scale,
+    )

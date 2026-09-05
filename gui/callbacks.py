@@ -21,8 +21,10 @@ import asyncio
 from .gui_pattern import GUIPattern
 from .pattern_placement import CanvasConfig, compute_pattern_placement
 
-# Pattern wrapper with no pattern loaded (see def_pattern_display)
-PATTERN_WRAPPER_RESET_STYLE = 'position: absolute; left: 0; top: 0; width: 0;'
+# Pattern display overlay (see def_pattern_display)
+BODY_OUTLINE_CLASSES = 'h-full'
+BODY_OUTLINE_STYLE = 'position: absolute; top: 0; left: 0;'
+PATTERN_WRAPPER_RESET_STYLE = 'position: absolute; left: 0; top: 0; width: 0;'   # no pattern loaded
 
 
 icon_github = """
@@ -68,7 +70,6 @@ class GUIState:
         # Pattern display constants
         self.canvas_aspect_ratio = 1500. / 900   # Millimiter paper
         self.canvas_config = CanvasConfig()   # Body silhouette placement, see gui/pattern_placement.py
-        self.body_outline_classes = ''   # Application of pattern&body scaling when it overflows
 
         # Paths setup
         # Static images for GUI
@@ -347,24 +348,21 @@ class GUIState:
                 # would win and stack the rows below each other instead. Inline styles beat both,
                 # so the geometry is the same across NiceGUI versions.
                 overlay_style = 'position: absolute; inset: 0; padding: 0; margin: 0; background: transparent;'
-                body_outline_style = 'position: absolute; top: 0; left: 0;'
-                with ui.row().classes('w-full h-full').style(overlay_style):
-                    self.body_outline_classes = 'bg-transparent h-full p-0 m-0'
+                with ui.row().style(overlay_style):
+                    # NOTE: visibility is toggled through the `hidden` class, so the
+                    # outline is only ever updated through .style(), never .classes(replace=)
                     self.ui_body_outline = ui.image(f'{self.path_static_img}/ggg_outline_mean_all.svg') \
-                        .classes(self.body_outline_classes).style(body_outline_style)
+                        .classes(BODY_OUTLINE_CLASSES).style(BODY_OUTLINE_STYLE)
                     switch.bind_value(self.ui_body_outline, 'visible')
                 
-                with ui.row().classes('w-full h-full').style(overlay_style):
+                with ui.row().style(overlay_style):
                     # The wrapper carries the pattern placement (fractions of the canvas).
                     # NOTE: ui.interactive_image's root has an inline `position: relative`,
                     # so it cannot be positioned directly.
-                    self.ui_pattern_wrapper = ui.element('div').classes('bg-transparent p-0 m-0') \
-                        .style(PATTERN_WRAPPER_RESET_STYLE)
+                    self.ui_pattern_wrapper = ui.element('div').style(PATTERN_WRAPPER_RESET_STYLE)
                     with self.ui_pattern_wrapper:
                         # Automatically updates from source
-                        self.ui_pattern_display = ui.interactive_image(
-                            ''
-                        ).classes('w-full bg-transparent p-0 m-0')
+                        self.ui_pattern_display = ui.interactive_image('').classes('w-full')
 
     # !SECTION
     # SECTION 3D view
@@ -583,14 +581,12 @@ class GUIState:
                     self.canvas_config
                 )
 
-                if placement.is_rescaled:
-                    # Pattern does not fit: shrink the body accordingly
-                    self.ui_body_outline.classes(
-                        replace=self.body_outline_classes + f' origin-center scale-[{placement.body_scale}]'
-                    )
-                else:
-                    # Remove body transforms if any were applied
-                    self.ui_body_outline.classes(replace=self.body_outline_classes)
+                # Shrink the body together with the pattern when it does not fit
+                body_scale_style = (
+                    f' transform: scale({placement.body_scale:.4f}); transform-origin: center;'
+                    if placement.is_rescaled else ''
+                )
+                self.ui_body_outline.style(replace=BODY_OUTLINE_STYLE + body_scale_style)
 
                 # New pattern image
                 self.ui_pattern_display.set_source(str(self.pattern_state.svg_path()))
@@ -605,7 +601,7 @@ class GUIState:
                 # Restore default state
                 self.ui_pattern_display.set_source('')
                 self.ui_pattern_wrapper.style(replace=PATTERN_WRAPPER_RESET_STYLE)
-                self.ui_body_outline.classes(replace=self.body_outline_classes)
+                self.ui_body_outline.style(replace=BODY_OUTLINE_STYLE)
 
     def update_design_params_ui_state(self, ui_elems, design_params):
         """Sync ui params with the current state of the design params"""
