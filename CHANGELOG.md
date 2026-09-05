@@ -1,6 +1,14 @@
 
 # Change Log
 
+## [Unreleased]
+
+### Fixed
+- **[GUI]** The sewing pattern was rendered below the canvas and clipped with NiceGUI 3.x. The overlay rows are now positioned with inline styles and the placement math moved to `gui/pattern_placement.py` (pure, unit-tested). Side effect: the pattern no longer inherits Quasar's 16px padding, so it is drawn ~2.5% wider and its position no longer depends on the window size.
+
+### Changed
+- **[Packaging]** The `gui` extra now requires `nicegui>=2.24,<4`.
+
 ## [2.0.2] - 2025-04-18
 
 ### Fixed

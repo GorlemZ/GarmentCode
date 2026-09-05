@@ -19,6 +19,10 @@ import asyncio
 
 # Custom
 from .gui_pattern import GUIPattern
+from .pattern_placement import CanvasConfig, compute_pattern_placement
+
+# Pattern wrapper with no pattern loaded (see def_pattern_display)
+PATTERN_WRAPPER_RESET_STYLE = 'position: absolute; left: 0; top: 0; width: 0;'
 
 
 icon_github = """
@@ -63,11 +67,7 @@ class GUIState:
 
         # Pattern display constants
         self.canvas_aspect_ratio = 1500. / 900   # Millimiter paper
-        self.w_rel_body_size = 0.5  # Body size as fraction of horisontal canvas axis
-        self.h_rel_body_size = 0.95
-        self.background_body_scale = 1 / 171.99   # Inverse of the mean_all body height from GGG
-        self.background_body_canvas_center = 0.273  # Fraction of the canvas (millimiter paper)
-        self.w_canvas_pad, self.h_canvas_pad = 0.011, 0.04
+        self.canvas_config = CanvasConfig()   # Body silhouette placement, see gui/pattern_placement.py
         self.body_outline_classes = ''   # Application of pattern&body scaling when it overflows
 
         # Paths setup
@@ -86,6 +86,7 @@ class GUIState:
         # Elements
         self.ui_design_subtabs = {}
         self.ui_pattern_display = None
+        self.ui_pattern_wrapper = None
         self._async_executor = ThreadPoolExecutor(1)  
 
         self.pattern_state.reload_garment()
@@ -340,18 +341,30 @@ class GUIState:
                     f'{self.path_static_img}/millimiter_paper_1500_900.png'
                 ).classes(f'aspect-[{self.canvas_aspect_ratio}] h-[95%] p-0 m-0')  as self.ui_pattern_bg:  
                 # NOTE: Positioning: https://github.com/zauberzeug/nicegui/discussions/957 
-                with ui.row().classes('w-full h-full p-0 m-0 bg-transparent relative top-[0%] left-[0%]'):
-                    self.body_outline_classes = 'bg-transparent h-full absolute top-[0%] left-[0%] p-0 m-0'
+                # The two rows below must overlay the canvas exactly. Quasar's
+                # `.q-img__content > div` rule would give them `position: absolute; padding: 16px`,
+                # while NiceGUI 3 puts Tailwind utilities in a higher CSS layer, so `.relative`/`.p-0`
+                # would win and stack the rows below each other instead. Inline styles beat both,
+                # so the geometry is the same across NiceGUI versions.
+                overlay_style = 'position: absolute; inset: 0; padding: 0; margin: 0; background: transparent;'
+                body_outline_style = 'position: absolute; top: 0; left: 0;'
+                with ui.row().classes('w-full h-full').style(overlay_style):
+                    self.body_outline_classes = 'bg-transparent h-full p-0 m-0'
                     self.ui_body_outline = ui.image(f'{self.path_static_img}/ggg_outline_mean_all.svg') \
-                        .classes(self.body_outline_classes) 
+                        .classes(self.body_outline_classes).style(body_outline_style)
                     switch.bind_value(self.ui_body_outline, 'visible')
                 
-                # NOTE: ui.row allows for correct classes application (e.g. no padding on svg pattern)
-                with ui.row().classes('w-full h-full p-0 m-0 bg-transparent relative'):
-                    # Automatically updates from source
-                    self.ui_pattern_display = ui.interactive_image(
-                        ''
-                    ).classes('bg-transparent p-0 m-0')                    
+                with ui.row().classes('w-full h-full').style(overlay_style):
+                    # The wrapper carries the pattern placement (fractions of the canvas).
+                    # NOTE: ui.interactive_image's root has an inline `position: relative`,
+                    # so it cannot be positioned directly.
+                    self.ui_pattern_wrapper = ui.element('div').classes('bg-transparent p-0 m-0') \
+                        .style(PATTERN_WRAPPER_RESET_STYLE)
+                    with self.ui_pattern_wrapper:
+                        # Automatically updates from source
+                        self.ui_pattern_display = ui.interactive_image(
+                            ''
+                        ).classes('w-full bg-transparent p-0 m-0')
 
     # !SECTION
     # SECTION 3D view
@@ -564,68 +577,34 @@ class GUIState:
 
             if self.pattern_state.svg_filename:
                 # Re-align the canvas and body with the new pattern
-                p_bbox_size = self.pattern_state.svg_bbox_size
-                p_bbox = self.pattern_state.svg_bbox
+                placement = compute_pattern_placement(
+                    self.pattern_state.svg_bbox,
+                    self.pattern_state.svg_bbox_size,
+                    self.canvas_config
+                )
 
-                # Margin calculations w.r.t. canvas size
-                # s.t. the pattern scales correctly
-                w_shift = abs(p_bbox[0])  # Body feet location in width direction w.r.t top-left corner of the pattern
-                m_top = (1. - abs(p_bbox[2]) * self.background_body_scale) * self.h_rel_body_size + (1. - self.h_rel_body_size) / 2 
-                m_left = self.background_body_canvas_center - w_shift * self.background_body_scale * self.w_rel_body_size
-                m_right = 1 - m_left - p_bbox_size[0] * self.background_body_scale * self.w_rel_body_size
-                m_bottom = 1 - m_top - p_bbox_size[1] * self.background_body_scale * self.h_rel_body_size
-
-                # Canvas padding adjustment
-                m_top -= self.h_canvas_pad
-                m_left -= self.w_canvas_pad
-                m_right += self.w_canvas_pad  # preserve evaluated width
-                m_bottom -= self.h_canvas_pad
-
-                # New placement
-                if m_top < 0 or m_bottom < 0 or m_left < 0 or m_right < 0:
-                    # Calculate the fraction
-                    scale_margin = 1.2
-                    y_top_scale = abs(min(m_top * scale_margin, 0.)) + 1.
-                    y_bot_scale = 1. + abs(min(m_bottom * scale_margin, 0.))
-                    x_left_scale = abs(min(m_left * scale_margin, 0.)) + 1.
-                    x_right_scale = abs(min(m_right * scale_margin, 0.)) + 1.
-                    scale = min(1. / y_top_scale, 1. / y_bot_scale, 1. / x_left_scale, 1. / x_right_scale)
-
-                    # Rescale the body
+                if placement.is_rescaled:
+                    # Pattern does not fit: shrink the body accordingly
                     self.ui_body_outline.classes(
-                        replace=self.body_outline_classes + f' origin-center scale-[{scale}]'
+                        replace=self.body_outline_classes + f' origin-center scale-[{placement.body_scale}]'
                     )
-
-                    # Recalculate positioning & width
-                    body_center = 0.5 - self.background_body_canvas_center
-                    m_top = (1. - abs(p_bbox[2]) * self.background_body_scale) * self.h_rel_body_size * scale + (1. - self.h_rel_body_size * scale) / 2 
-                    m_left = (0.5 - body_center * scale) - w_shift * self.background_body_scale * self.w_rel_body_size * scale
-                    m_right = 1 - m_left - p_bbox_size[0] * self.background_body_scale * self.w_rel_body_size * scale
-
-                    # Canvas padding adjustment
-                    # TODOLOW For some reason top adjustment is not needed here: m_top -= self.h_canvas_pad * scale
-                    m_left -= self.w_canvas_pad * scale
-                    m_right += self.w_canvas_pad * scale
-
-                else:  # Display normally 
+                else:
                     # Remove body transforms if any were applied
                     self.ui_body_outline.classes(replace=self.body_outline_classes)
 
                 # New pattern image
-                self.ui_pattern_display.set_source(
-                    str(self.pattern_state.svg_path()) if self.pattern_state.svg_filename else '')
-                self.ui_pattern_display.classes(
-                        replace=f"""bg-transparent p-0 m-0
-                                absolute 
-                                left-[{m_left * 100}%]
-                                top-[{m_top * 100}%] 
-                                w-[{(1. - m_right - m_left) * 100}%]
-                                height-auto
-                        """)  
-                    
+                self.ui_pattern_display.set_source(str(self.pattern_state.svg_path()))
+                self.ui_pattern_wrapper.style(replace=(
+                    f'position: absolute; '
+                    f'left: {placement.left * 100:.4f}%; '
+                    f'top: {placement.top * 100:.4f}%; '
+                    f'width: {placement.width * 100:.4f}%;'
+                ))
+
             else:
                 # Restore default state
                 self.ui_pattern_display.set_source('')
+                self.ui_pattern_wrapper.style(replace=PATTERN_WRAPPER_RESET_STYLE)
                 self.ui_body_outline.classes(replace=self.body_outline_classes)
 
     def update_design_params_ui_state(self, ui_elems, design_params):
