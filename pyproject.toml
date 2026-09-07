@@ -83,3 +83,4 @@ select = ["E9", "F63", "F7", "F82"]
 
 [tool.ruff.lint.per-file-ignores]
 "assets/garment_programs/meta_garment.py" = ["F403", "F405"]
+"pygarment/programs/meta_garment.py" = ["F403", "F405"]

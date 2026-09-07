@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from assets.garment_programs.meta_garment import (
+from pygarment.programs.meta_garment import (
     IncorrectElementConfiguration,
     TotalLengthError,
 )

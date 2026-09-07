@@ -28,3 +28,14 @@ def test_path_config_split_keeps_sim_config_compatibility():
     assert sim_config_module.PathCofig is path_config_module.PathCofig
     assert PathCofig.__module__ == 'pygarment.meshgen.path_config'
     assert SimConfig.__module__ == 'pygarment.meshgen.sim_config'
+
+
+def test_product_boundary_exposes_canonical_programs_package():
+    programs_module = importlib.import_module('pygarment.programs')
+    meta_module = importlib.import_module('pygarment.programs.meta_garment')
+    body_module = importlib.import_module('pygarment.programs.body_params')
+
+    assert programs_module.MetaGarment is meta_module.MetaGarment
+    assert programs_module.BodyParameters is body_module.BodyParameters
+    assert meta_module.MetaGarment.__module__ == 'pygarment.programs.meta_garment'
+    assert body_module.BodyParameters.__module__ == 'pygarment.programs.body_params'

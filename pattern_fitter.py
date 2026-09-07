@@ -12,8 +12,8 @@ import argparse
 
 # Custom
 from pygarment.data_config import Properties
-from assets.garment_programs.meta_garment import MetaGarment
-from assets.bodies.body_params import BodyParameters
+from pygarment.programs.meta_garment import MetaGarment
+from pygarment.programs.body_params import BodyParameters
 
 def get_command_args():
     """command line arguments to control the run"""

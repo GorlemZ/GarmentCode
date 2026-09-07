@@ -8,8 +8,8 @@ from copy import deepcopy
 from typing import Optional
 
 # Custom 
-from assets.garment_programs.meta_garment import MetaGarment
-from assets.bodies.body_params import BodyParameters
+from pygarment.programs.meta_garment import MetaGarment
+from pygarment.programs.body_params import BodyParameters
 import pygarment as pyg
 from pygarment._optional import require_optional
 import pygarment.data_config as data_config
