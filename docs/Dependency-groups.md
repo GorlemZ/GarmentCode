@@ -29,7 +29,7 @@ The base install intentionally does **not** require:
 | Extra | Command | Purpose | Notes |
 |---|---|---|---|
 | `visualization` | `python -m pip install "pygarment[visualization]"` | PNG/PDF export and 3D debug image generation | CairoSVG still needs a native Cairo runtime installed on the operating system. |
-| `gui` | `python -m pip install "pygarment[gui]"` | NiceGUI-based 2D configurator UI | Run from a full repository checkout because the GUI uses `assets/` paths. 3D draping also needs `mesh` and the external Warp fork. |
+| `gui` | `python -m pip install "pygarment[gui]"` | NiceGUI-based 2D configurator UI | Run from a full repository checkout: the `gui` package is not part of the wheel and the GUI uses `assets/` paths. Tested with NiceGUI 2.24 and 3.16 (`nicegui>=2.24,<4`). 3D draping also needs `mesh` and the external Warp fork. |
 | `mesh` | `python -m pip install "pygarment[mesh]"` | Box-mesh generation and mesh rendering dependencies available from Python packages: trimesh, libigl, CGAL, pyrender, Pillow, and Matplotlib | Platform wheels for libigl/CGAL may vary; install failures are environment-specific and should not block the core package. |
 | `simulation` | `python -m pip install "pygarment[simulation]"` | Declares the Warp-backed simulation capability boundary | Install the GarmentCode-specific NVIDIA Warp environment manually from `maria-korosteleva/NvidiaWarp-GarmentCode`; this extra is a documentation marker, not a PyPI dependency bundle. |
 | `maya` | `python -m pip install "pygarment[maya]"` | Declares the legacy Maya capability boundary | Maya and Qualoth are proprietary external prerequisites and are not installed by pip. |

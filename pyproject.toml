@@ -38,7 +38,7 @@ visualization = [
   "matplotlib",
 ]
 gui = [
-  "nicegui",
+  "nicegui>=2.24,<4",
   "CairoSVG",
   "matplotlib",
 ]
