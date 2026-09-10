@@ -46,7 +46,7 @@ def application(environ: Mapping[str, Any], start_response: _WSGIResponse) -> It
 def _read_json(environ: Mapping[str, Any]) -> object:
     raw_input = environ.get("wsgi.input")
     if raw_input is None:
-        raise ValueError("request body is required")
+        raise PreviewRequestError("request body is required")
     content_length = environ.get("CONTENT_LENGTH", "")
     try:
         length = int(content_length)

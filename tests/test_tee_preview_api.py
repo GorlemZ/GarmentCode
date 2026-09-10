@@ -77,3 +77,16 @@ def test_preview_endpoint_rejects_malformed_json():
 
     assert status == "400 Bad Request"
     assert response["error"]["code"] == "invalid_request"
+
+
+def test_preview_endpoint_rejects_missing_wsgi_input():
+    status = []
+    response = b"".join(
+        application(
+            {"REQUEST_METHOD": "POST", "PATH_INFO": "/api/v1/tee/preview", "CONTENT_LENGTH": "0"},
+            lambda response_status, _: status.append(response_status),
+        )
+    )
+
+    assert status == ["400 Bad Request"]
+    assert json.loads(response)["error"]["code"] == "invalid_request"
