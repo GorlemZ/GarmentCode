@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
+from pygarment.pattern.core import EmptyPatternError
+from pygarment.pattern.wrappers import VisPattern
 from pygarment.programs.meta_garment import (
     IncorrectElementConfiguration,
     TotalLengthError,
 )
-from pygarment.pattern.core import EmptyPatternError
-from pygarment.pattern.wrappers import VisPattern
 
 pytestmark = pytest.mark.core
 
