@@ -1,9 +1,15 @@
 from copy import deepcopy
+from typing import Any, cast
 
 import pytest
 import yaml
 
-from pygarment.use_cases.tee import TeeInputError, TeeRequest, generate_tee
+from pygarment.use_cases.tee import (
+    BodyMeasurements,
+    TeeInputError,
+    TeeRequest,
+    generate_tee,
+)
 
 
 def _input():
@@ -62,6 +68,18 @@ def test_tee_request_rejects_null_required_body_fields(field):
 
     with pytest.raises(TeeInputError, match=f"body.{field} must be a number"):
         TeeRequest.from_mapping(payload)
+
+
+def test_body_measurements_has_no_unvalidated_public_constructor():
+    body = _input()["body"]
+
+    with pytest.raises(TypeError):
+        BodyMeasurements(**body)
+
+
+def test_tee_request_has_no_unvalidated_public_constructor():
+    with pytest.raises(TypeError):
+        TeeRequest(body=cast(Any, None), design={})
 
 
 def test_generate_tee_rejects_unvalidated_mapping():
