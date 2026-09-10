@@ -28,3 +28,49 @@ def test_path_config_split_keeps_sim_config_compatibility():
     assert sim_config_module.PathCofig is path_config_module.PathCofig
     assert PathCofig.__module__ == 'pygarment.meshgen.path_config'
     assert SimConfig.__module__ == 'pygarment.meshgen.sim_config'
+
+
+def test_product_boundary_exposes_canonical_programs_package():
+    programs_module = importlib.import_module('pygarment.programs')
+    meta_module = importlib.import_module('pygarment.programs.meta_garment')
+    body_module = importlib.import_module('pygarment.programs.body_params')
+    legacy_meta_module = importlib.import_module('assets.garment_programs.meta_garment')
+    legacy_body_module = importlib.import_module('assets.bodies.body_params')
+
+    assert programs_module.MetaGarment is meta_module.MetaGarment
+    assert programs_module.BodyParameters is body_module.BodyParameters
+    assert legacy_meta_module.MetaGarment is meta_module.MetaGarment
+    assert legacy_body_module.BodyParameters is body_module.BodyParameters
+    assert meta_module.MetaGarment.__module__ == 'pygarment.programs.meta_garment'
+    assert body_module.BodyParameters.__module__ == 'pygarment.programs.body_params'
+    assert legacy_meta_module.MetaGarment.__module__ == 'pygarment.programs.meta_garment'
+    assert legacy_body_module.BodyParameters.__module__ == 'pygarment.programs.body_params'
+
+
+@pytest.mark.parametrize(
+    'module_name',
+    [
+        'bands',
+        'base_classes',
+        'bodice',
+        'circle_skirt',
+        'collars',
+        'godet',
+        'meta_garment',
+        'pants',
+        'shapes',
+        'skirt_levels',
+        'skirt_paneled',
+        'sleeves',
+        'stats_utils',
+        'tee',
+    ],
+)
+def test_legacy_program_module_reexports_canonical_public_symbols(module_name):
+    canonical = importlib.import_module(f'pygarment.programs.{module_name}')
+    legacy = importlib.import_module(f'assets.garment_programs.{module_name}')
+
+    public_names = [name for name in vars(canonical) if not name.startswith('_')]
+    assert public_names
+    assert all(name in vars(legacy) for name in public_names)
+    assert all(getattr(legacy, name) is getattr(canonical, name) for name in public_names)

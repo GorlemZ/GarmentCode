@@ -32,6 +32,9 @@ def test_wheel_installs_pygarment_namespace(tmp_path):
         assert "pygarment/data_config.py" in members
         assert "pygarment/garmentcode/component.py" in members
         assert "pygarment/pattern/core.py" in members
+        assert "assets/__init__.py" in members
+        assert "assets/garment_programs/meta_garment.py" in members
+        assert "assets/bodies/body_params.py" in members
         native_suffixes = (".dll", ".dylib", ".pyd", ".so")
         assert not any(member.lower().endswith(native_suffixes) for member in members)
         assert "garmentcode/__init__.py" not in members

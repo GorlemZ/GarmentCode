@@ -3,8 +3,8 @@ import shutil
 from pathlib import Path
 import yaml
 
-from assets.garment_programs.meta_garment import MetaGarment
-from assets.bodies.body_params import BodyParameters
+from pygarment.programs.meta_garment import MetaGarment
+from pygarment.programs.body_params import BodyParameters
 from pygarment.data_config import Properties
 
 
