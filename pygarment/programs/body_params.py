@@ -7,7 +7,9 @@ class BodyParameters(pyg.BodyParametrizationBase):
     """Custom class that defines calculated body parameters"""
 
     def __init__(self, param_file='') -> None:
-        super().__init__(param_file)
+        self.params = {}
+        if param_file:
+            self.load(param_file)
 
     def eval_dependencies(self, key=None):
         super().eval_dependencies(key)
