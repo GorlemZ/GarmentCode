@@ -2,78 +2,126 @@
 
 from collections.abc import Mapping
 from copy import deepcopy
+from dataclasses import asdict, dataclass, fields
+from math import isfinite
+from numbers import Real
 
 from pygarment.programs.body_params import BodyParameters
 from pygarment.programs.meta_garment import MetaGarment
 
 
 class TeeInputError(ValueError):
-    """Raised when a T-shirt request does not contain the full input shape."""
+    """Raised when a T-shirt request does not contain valid input."""
 
 
-_REQUIRED_BODY_FIELDS = {
-    "arm_length",
-    "arm_pose_angle",
-    "armscye_depth",
-    "back_width",
-    "bust",
-    "bust_line",
-    "bust_points",
-    "head_l",
-    "height",
-    "hip_inclination",
-    "hips",
-    "hips_line",
-    "neck_w",
-    "shoulder_incl",
-    "shoulder_w",
-    "underbust",
-    "vert_bust_line",
-    "waist",
-    "waist_line",
-}
 _REQUIRED_DESIGN_SECTIONS = {"meta", "waistband", "shirt", "collar", "sleeve", "left"}
 
 
-def generate_tee(request: Mapping):
-    """Generate a T-shirt assembly from a complete body and design mapping.
+@dataclass(frozen=True)
+class BodyMeasurements:
+    """Validated, non-null body measurements required by the T-shirt program."""
 
-    The request is copied before it is passed to the mutable core parameter
-    objects. The returned value is the existing ``VisPattern`` assembly; a
-    later PR will define the public geometry serializer.
-    """
-    if not isinstance(request, Mapping):
-        raise TeeInputError("request must be a mapping")
+    arm_length: float
+    arm_pose_angle: float
+    armscye_depth: float
+    back_width: float
+    bum_points: float
+    bust: float
+    bust_line: float
+    bust_points: float
+    crotch_hip_diff: float
+    head_l: float
+    height: float
+    hip_back_width: float
+    hip_inclination: float
+    hips: float
+    hips_line: float
+    leg_circ: float
+    neck_w: float
+    shoulder_incl: float
+    shoulder_w: float
+    underbust: float
+    vert_bust_line: float
+    waist: float
+    waist_back_width: float
+    waist_line: float
+    waist_over_bust_line: float
+    wrist: float
 
-    body = request.get("body")
-    design = request.get("design")
-    if not isinstance(body, Mapping):
-        raise TeeInputError("request.body must be a mapping")
-    missing_body = sorted(_REQUIRED_BODY_FIELDS - body.keys())
-    if missing_body:
-        raise TeeInputError(f"request.body is missing fields: {', '.join(missing_body)}")
-    if not isinstance(design, Mapping):
-        raise TeeInputError("request.design must be a mapping")
-    missing_sections = sorted(_REQUIRED_DESIGN_SECTIONS - design.keys())
-    if missing_sections:
-        raise TeeInputError(
-            f"request.design is missing sections: {', '.join(missing_sections)}"
-        )
+    @classmethod
+    def from_mapping(cls, body: object) -> "BodyMeasurements":
+        if not isinstance(body, Mapping):
+            raise TeeInputError("request.body must be a mapping")
 
-    meta = design.get("meta")
-    if not isinstance(meta, Mapping):
-        raise TeeInputError("request.design.meta must be a mapping")
-    for key in ("upper", "bottom", "wb"):
-        if not isinstance(meta.get(key), Mapping) or "v" not in meta[key]:
-            raise TeeInputError(f"request.design.meta.{key}.v is required")
+        expected = {item.name for item in fields(cls)}
+        missing = sorted(expected - body.keys())
+        if missing:
+            raise TeeInputError(f"request.body is missing fields: {', '.join(missing)}")
+
+        values: dict[str, float] = {}
+        for name in expected:
+            value = body[name]
+            if isinstance(value, bool) or not isinstance(value, Real) or not isfinite(value):
+                raise TeeInputError(f"request.body.{name} must be a number")
+            values[name] = float(value)
+        return cls(**values)
+
+    def as_mapping(self) -> dict[str, float]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class TeeRequest:
+    """Validated input accepted by the T-shirt generation use case."""
+
+    body: BodyMeasurements
+    design: Mapping[str, object]
+
+    @classmethod
+    def from_mapping(cls, request: object) -> "TeeRequest":
+        if not isinstance(request, Mapping):
+            raise TeeInputError("request must be a mapping")
+
+        body = BodyMeasurements.from_mapping(request.get("body"))
+        design = request.get("design")
+        if not isinstance(design, Mapping):
+            raise TeeInputError("request.design must be a mapping")
+
+        missing_sections = sorted(_REQUIRED_DESIGN_SECTIONS - design.keys())
+        if missing_sections:
+            raise TeeInputError(
+                f"request.design is missing sections: {', '.join(missing_sections)}"
+            )
+
+        meta = design.get("meta")
+        if not isinstance(meta, Mapping):
+            raise TeeInputError("request.design.meta must be a mapping")
+        for key in ("upper", "bottom", "wb"):
+            value = meta.get(key)
+            if not isinstance(value, Mapping) or "v" not in value:
+                raise TeeInputError(f"request.design.meta.{key}.v is required")
+
+        return cls(body=body, design=deepcopy(dict(design)))
+
+
+
+def generate_tee(request: TeeRequest):
+    """Generate a T-shirt assembly from a validated request DTO."""
+    if not isinstance(request, TeeRequest):
+        raise TypeError("request must be a TeeRequest")
 
     body_params = BodyParameters()
-    body_params.load_from_dict(deepcopy(dict(body)))
-    garment = MetaGarment("t-shirt", body_params, deepcopy(dict(design)))
+    body_params.load_from_dict(request.body.as_mapping())
+    garment = MetaGarment("t-shirt", body_params, deepcopy(dict(request.design)))
     garment.assert_non_empty()
     garment.assert_skirt_waistband()
     garment.assert_total_length()
     return garment.assembly()
 
 
-__all__ = ["TeeInputError", "generate_tee"]
+__all__ = [
+    "BodyMeasurements",
+    "TeeInputError",
+    "TeeRequest",
+    "generate_tee",
+]
