@@ -1,6 +1,6 @@
-"""Legacy import shim for garment programs.
+"""Compatibility shim for meta_garment.py.
 
-Canonical implementations live in pygarment.programs.
+Canonical implementations live under pygarment.programs.meta_garment.
 """
 
-from pygarment.programs.meta_garment import *
+from pygarment.programs.meta_garment import *  # noqa: F403,F401
